@@ -25,9 +25,13 @@ Project structure:
     
  
 Data Sources:  
+
 The two data sets are obtained from the California Open Data sources.  
 The data set "Personal income tax data by Zip code"  is published by California Franchise Tax Board.   
+https://data.ca.gov/dataset/personal-income-tax-statistics-by-zip-code  
+
 The data set "Vehicle registration data by Zip code" is provided by DMV Information Policy and Liaison Branch.  
+https://data.ca.gov/dataset/vehicle-fuel-type-count-by-zip-code  
     
 
 External Resources and LLM Use:  

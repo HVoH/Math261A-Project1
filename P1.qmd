@@ -398,6 +398,11 @@ Consequently, although it is a strong evidence of a positive association, averag
 
 # References
 
+California Department of Motor Vehicles. *Vehicle Fuel Type Count by Zip Code*. California Open Data. https://data.ca.gov/dataset/vehicle-fuel-type-count-by-zip-code
+
+California Franchise Tax Board. *Personal Income Tax Statistics By Zip Code*. California Open Data. https://data.ca.gov/dataset/personal-income-tax-statistics-by-zip-code
+
+
 Brown, D. P. (2021). Socioeconomic and demographic disparities in residential battery storage adoption: Evidence from California. *Energy Policy, 164*, 112877. https://doi.org/10.1016/j.enpol.2022.112877
 
 Muehlegger, E., & Rapson, D. S. (2022). Subsidizing low- and middle-income adoption of electric vehicles: Quasi-experimental evidence from California. *Journal of Public Economics, 216*, 104752. https://doi.org/10.1016/j.jpubeco.2022.104752
