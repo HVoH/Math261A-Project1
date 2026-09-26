@@ -1,0 +1,407 @@
+---
+title: "Is Average Adjusted Income per Tax Return Associated with EV Ownership Across California ZIP codes in 2023?"
+# subtitle: "Subtitle"
+author: "Hien Vo"
+# thanks: "Project repository available at: [https://github.com......................"
+date: today
+date-format: long
+abstract: "California is one of the largest markets for electric vehicles (EVs) in the US. However, EV adoption varies across different areas of the state. Because EVs are generally more expensive to purchase than many other types of vehicles, income may be associated with EV adoption. This study uses linear regression to investigate whether EV regristration is associated with average AGI. Using 2023 income data and individual EV registration data aggregated by ZIP code, the analysis examine whether the areas with higher average AGI tend to have a higher percentage of EV regristrations." 
+
+format: pdf
+# bibliography: references.bib
+number-sections: true
+---
+
+```{r}
+#| include: false
+#| warning: false
+#| message: false
+
+# load libraries
+library(tidyverse)
+library(ggpubr)
+library(dplyr)
+library(ggplot2)
+library(readr)
+
+```
+
+# Introduction
+
+Following the adoption of California's zero-emission vehicles policies, the required percentage of new zero-emission vehicle sales is scheduled to increase gradually, reaching 100% by 2035. Although the government has programs such that the Enhanced Fleet Modernization Program ("EFMP") that provides subsidies to EV buyers, the price of EVs may still be an important factors in purchasing decisions. Muehlegger and Rapson (2022) finds that EV demand from low- and middle-income buyers is price-elastic. Their research shows that if subsidies resulted in a reductions of 10% in EV prices, sales to to low- and middle income buyers would increase by approximately 21%. They also emphasize EVs price impacts this customer segments more than higher-income buyers. 
+
+Additional, according to Brown (2021), there is a strong relationship between median household income and residential battery storage adoption rates in California. The study also finds negative disparities in battery adoption rates in ZIP codes with larger percentages of Black, Asian, and Hispanic residents. Defining EVs as battery electric vehicles only, the question is whether the percentage of EV registration is higher in ZIP codes with higher average income. 
+
+In this paper, I study the associate between the average adjusted gross income (AGI) per tax return and the percentage of EV registration across California ZIP codes in 2023. We expect there is a strong positive relationship between these variables. The results may provide some information for EV sellers when considering different sales strategies across ZIP codes.
+
+
+# Data {#sec-data}
+
+```{r clean data}
+#| echo: false
+#| warning: false
+#| message: false
+#| output: false
+
+
+# Raw data
+
+Vehicle_Raw_Data <- read_csv("DataP1/vehicle-fuel-type-count-by-zip-code-2023.csv")
+Income_Raw_Data <- read_csv("DataP1/2024_personal_income_tax_statistics_by_zip_code.csv")
+
+
+#--------------------  Vehicle Date -------------------
+
+# rename ZipCode
+Vehicle_Raw_Data <- Vehicle_Raw_Data |> rename(ZipCode = "ZIP Code")
+
+# Clean Vehicle Date
+Vehicle_Clean <- Vehicle_Raw_Data |>
+                              filter(Duty == "Light") |>
+                              group_by(ZipCode) |>
+                              summarize(
+                                Total_Light_Vehicles = sum(Vehicles, na.rm = TRUE),
+                                EV = sum(Vehicles[Fuel == "Battery Electric"], na.rm = TRUE),
+                                EV_Percentage = EV/Total_Light_Vehicles * 100)
+
+# Vehicle_Clean |> count(ZipCode) |> filter(n>1)
+
+
+# Total light vehicles registered in California
+Total_Light_Vehicles <- sum(Vehicle_Clean$Total_Light_Vehicles, na.rm = TRUE)
+
+
+#--------------------  Income Date -------------------
+
+# Check if any Zip code have muliple rows
+Income_Raw_Data |> filter(TaxYear == 2023) |> count(ZipCode) |> filter(n > 1)
+
+# ZIP code 93636 appears to have a duplicated row.
+Income_Raw_Data |> filter(TaxYear == 2023, ZipCode == 93636)
+
+# Clean Income Data 
+Income_Clean <- Income_Raw_Data |> filter(TaxYear == 2023) |>
+                    select(ZipCode, Returns, CAAGI)|>
+                    distinct() |>
+                    filter(!ZipCode %in% c("Suppressed", "Unallocated")) |>
+                    mutate(Average_AGI = CAAGI / Returns) |>
+                    select(ZipCode, Average_AGI)
+
+
+# Income_Clean |> filter(is.na(Average_AGI) | is.infinite(Average_AGI))
+# Income_Raw_Data |> filter(TaxYear == 2023, ZipCode =="90411") |> select(ZipCode, Returns, CAAGI)
+
+
+
+# ------------------- Join Income Data and Vehicle Data based on Zip code --------------
+
+Join_Data <- Income_Clean |> 
+            inner_join(Vehicle_Clean, by = c("ZipCode" = "ZipCode")) |>
+            select(ZipCode, Average_AGI, EV_Percentage)
+
+Observations <- nrow(Join_Data)
+# N <- n_distinct(Join_Data$ZipCode)
+
+
+# Check for Data Not Matched
+
+Income_Clean |> anti_join(Vehicle_Clean, by =  c("ZipCode" = "ZipCode"))
+
+Vehicle_Not_Matched <- Vehicle_Clean |>
+                      anti_join(Income_Clean, by = c("ZipCode" = "ZipCode"))
+
+Vehicle_Not_Matched |> summarize(
+                    Total_ZipCode = n(),
+                    Total_Vehicles = sum(Total_Light_Vehicles, na.rm = TRUE),
+                    Total_EV = sum(EV, na.rm = TRUE))
+
+ZipCode_Not_Matched <- nrow(Vehicle_Not_Matched$ZipCode)
+EV_of_Vehicle_Not_Matched <- sum(Vehicle_Not_Matched$EV)
+
+Per_EV_of_Vehicle_Not_Matched <- round(sum(Vehicle_Not_Matched$EV) / sum(Vehicle_Clean$EV) * 100, 2)
+
+
+
+
+```
+
+The data used for this research come from two data sets are extracted from the California Open Data sources. The first data set is "Personal Income Tax Statistics by Zip Code, City, and County" which contains the number of tax returns, California AGI, and total tax liability for each ZIP code, county, and city from tax year 1992 to 2023. The data set is published by California Franchise Tax Board. Since I only need the average AGI per tax return for each ZIP code in 2023, the average is calculated by dividing California AGI by the number of tax returns for the tax year 2023. 
+
+The second data set is "Vehicle Fuel Type Count by Zip Code in 2023" which contains model year, fuel type, make and duty of registered vehicles by ZIP code in California. The data set is provided by DMV Information Policy and Liaison Branch. Because EVs in the research are defined as battery electric vehicles registered as light-duty vehicles for non-commercial purposes, the data are cleaned and grouped by ZIP code to obtained `r format(Total_Light_Vehicles, big.mark = ",")` light-duty registered vehicles. The percentage of EV registrations is then calculated by dividing the number of light-duty EVs by the total number of light-duty registered vehicles. However, DMV counts ZIP codes base on the mailing addresses that vehicles owners use to receive mail. Thus, there is about `r format(EV_of_Vehicle_Not_Matched, big.mark = ",")` EVs associated with mailing addresses in Zip codes outsite California, representing approximately `r Per_EV_of_Vehicle_Not_Matched`% of EV in the vehicle data set. 
+
+
+I create a new data set for this research by joining the income and vehicle data sets by ZIP code in which total `r Observations` observations. ZIP codes that cannot be matched between the two data sets are excluded from the new data set because the research focuses areas with both California tax return information and vehicle registration data, rather than areas with vehicle registrations only. The final joined data set contains one observation for each matched California ZIP code with variables including average AGI per tax return and the percentage of EV registrations in 2023. 
+
+The association between average AGI per tax return and the percentage of EV registrations in 2023 is shown in @fig-ev-scatter. 
+
+
+```{r}
+#| warning: false
+#| echo: false
+#| message: false
+#| label: fig-ev-scatter
+#| fig-cap: "Scatter plot of average AGI per tax return (x-axis) and percentage of EV registrations (y-axis) across California ZIP codes in 2023."
+#| fig-pos: "H"
+#| fig-width: 7
+#| fig-height: 5
+
+# -----------------Scatter plot --------------------------------
+
+plot(x = Join_Data$Average_AGI,
+     y = Join_Data$EV_Percentage,
+     main = "Battery Electric Vehicles Percentage vs. Average AGI per Tax Return",
+     xlab = "Average AGI per Tax Return ($)",
+     ylab = "Battery Electric Vehicles (%)",
+     pch = 19, frame = T, col = "#113b7d",
+     cex.main = 1.0, cex.lab = 0.9, xaxt = "n")
+
+axis(1, at = axTicks(1), 
+     labels = format(axTicks(1), big.mark = ",", scientific = F),
+     cex.axis = 0.8)
+
+EV_Model <- lm(EV_Percentage ~ Average_AGI, data = Join_Data)
+
+# summary(EV_Model)
+
+R_squared <- summary(EV_Model)$r.squared
+
+
+```
+
+
+# Methods {#sec-methods}
+
+I fit the simple linear regression model of the percentage of EV registrations on average AGI per tax return.
+
+$$Y_i = \beta_0 +\beta_1 X_i + \varepsilon_i$$
+
+
+In this model, $Y_i$ represents the percentage of EV registrations in ZIP code $i$, and $X_i$ represents the average AGI per tax return in units of $10,000. The slop $\beta_1$ represents the estimated change in the percentage of EV registrations, in percentage points, for each dolla increase in average AGI per tax return. The intercept $\beta_0$ represents the estimated percentage of EV registrations when the average AGI per tax return is zero. The error term $\varepsilon_i$ represents the random variation in the percentage of EV registrations that is not explained by average AGI.
+
+I implemented this analysis using the R programming language version 4.4.2 to fit the linear regression model.
+
+
+
+# Results {#sec-results}
+
+The model is $\hat{Y}_i = 1.4 + 0.00001297X_i$. The estimated intercept $b_0$ is 1.4, meaning that when the average AGI per tax return is $0, the model predicts about 1.4% of registered vehicles are EVs. However, an average AGI of $0 is not a realistic value in practive for most Zip codes in California. The estimated slope $b_1$ is 0.00001297, meaning that for each $10,000 increase in average AGI per tax return, the percentage of EV registrations is expected to increase by 0.1297 (or nearly 0.13) percentage points.
+To determine whether there is sufficient evidence of a positive linear association between average AGI and the percentage of EV registrations, I test the slope parameter $\beta_1$.
+
+The null hypothesis for this t_test is that there is no positive linear association between average AGI and the percentage of EV registrations. The alternative hypothesis represents a positive linear association.
+$$H_0: \beta_1 = 0$$
+$$H_1: \beta_1 > 0$$
+
+```{r t-test}
+#| warning: false
+#| echo: false
+#| message: false
+#| output: false
+
+Model_summary <- summary(EV_Model)
+t_value <- Model_summary$coefficients["Average_AGI", "t value"]
+df <- df.residual(EV_Model)
+
+p_value <- pt(t_value, df = df, lower.tail = FALSE)
+
+t_value
+df
+p_value
+
+```
+The t-value for this test is `r round(t_value, 2)`, with `r df` degrees of freedom, and the p-value is `r format(p_value, scientific = TRUE, digits = 3)`. Since the p-value is too small, which is less than 0.005, I reject $H_0$. This indicates that there is sufficient evidence of a positive linear association between average AGI and the percentage of EV registrations. However, the hypothesis test does not indicates how well the linear model explains the variations in EV registration percentages; instead, $R^2$ is used for this purpose.
+
+The $R^2$ value for the fitted model is `r round(R_squared, 4)` which indicates approximately `r round(R_squared *100, 2)` % of the variation in EV registration percentages across the Zip codes is explained by the model.
+Since a large amount of variation remains unexplained by the model, examining the residuals and the Normal Q-Q plot is necessary to further evaluated the model fit. The residuals versus fitted values for the linear regression model is shown in @fig-residual, and the Normal Q-Q plot of the residuals is shown in @fig-qq-plot.
+
+In @fig-residual, most residuals which low fitted values are concentrated around zero. As the fitted values increase, the residuals become more spread out, with varying distribution densities. The concentration of observations is higher on the positive residual side than on the negative residual side. However, the negative residuals spread farther from zero as the fitted values increase. One observation stands apart from the others, with a negative fitted value and a large positive residual. 
+
+In @fig-qq-plot, the residuals in the middle portion of the normal Q-Q plot are relatively close to the reference line. However, the points form a curved pattern instead of following the reference line tightly. They also deviate substantially from the lines toward both tails. The left tail expands farther into the negative side with a large gap from the reference line, while the right tail curves upward and extends above the reference line.  
+
+Overall, @fig-residual and @fig-qq-plot show noticeable patterns in the residuals, characterized by increasing spread and substantial deviations at both tails. Thus, I further examine the extreme residuals by identifying the 10 Zip codes with the largest positive residuals (@tbl-high-residual)  and 10 Zip codes with the largest negative residuals (@tbl-low-residual).
+
+Among 10 Zip codes with the largest negative residuals, nine are also in the top 1% of average AGI per tax return, with average AGI ranging from $682,534 to $1,657,737. Only Zip code 90410 in the top 1% of average AGI appears among the 10 largest positive residuals. In addition, Zip code 95246 appears in the table with the lowest average AGI of approximately -$1.5 million and also has the largest positive residual 18.42.
+
+For the 10 Zip codes with the largest positive residuals, their observed EV registration percentage are higher than the values predicts by the linear model.
+
+
+
+```{r}
+#| warning: false
+#| echo: false
+#| message: false
+#| label: fig-residual
+#| fig-cap: "Residuals vs. Fitted values for the linear regression model"
+#| fig-pos: "H"
+#| fig-width: 7
+#| fig-height: 5
+
+# ------------- Residual--------------
+plot(x = fitted(EV_Model),
+     y = residuals(EV_Model),
+     main = "Residuals vs. Fitted Values",
+     xlab = "Fitted Values",
+     ylab = "Residuals",
+     pch = 19, frame = T, col = "#4f9e71")
+abline(h = 0)
+
+```
+
+
+
+```{r}
+#| warning: false
+#| echo: false
+#| message: false
+#| label: fig-qq-plot
+#| fig-cap: "Normal Q-Q plot of the residuals from the linear regression model"
+#| fig-pos: "H"
+#| fig-width: 7
+#| fig-height: 5
+
+# ------------- QQ Plot--------------
+
+qqnorm(EV_Model$residuals, main = "Normal Q-Q Plot", lwd = 1.5, col = "#db6014" )
+qqline(EV_Model$residuals, lwd = 2 )
+
+
+```
+
+
+
+
+
+```{r}
+#| warning: false
+#| echo: false
+#| message: false
+#| output: false
+
+# ------------- Extract Zip codes with negative average AGI -----------
+
+Negative_AGI <- Join_Data |> 
+                filter(Average_AGI < 0) |>
+                arrange(Average_AGI)
+
+Negative_AGI
+
+Negative_AGI |> summarize(
+                number_of_Zipcode = n(),
+                Mean_EV_Percentage = mean(EV_Percentage),
+                Median_EV_Percentage = median(EV_Percentage)) 
+
+
+# ------------ Extract Zip codes with high average AGI -----------
+
+# quantile(Join_Data$Average_AGI, probs = c(0, 0.01, 0.05, 0.25, 0.75, 0.95, 0.99, 1))
+# Find high average AGI in top 1%
+
+High_AGI_Cutoff <- quantile(Join_Data$Average_AGI, 0.99)
+
+High_AGI <- Join_Data |> 
+            filter(Average_AGI >= High_AGI_Cutoff) |>
+            arrange(desc(Average_AGI))
+
+High_AGI
+
+
+# ----------------- Extract 10 largest negative/positive residuals -------------
+# Residuals and Fitted values
+
+Residual_Data <- Join_Data |>
+                  mutate(
+                    Fitted = fitted(EV_Model),
+                    Residual = residuals(EV_Model))
+
+# Extract 10 largest negative residuals
+Low_Residual <- Residual_Data |>
+                arrange(Residual) |>
+                head(10)
+
+# Extract 10 largest positive residuals
+High_Residual <- Residual_Data |>
+                arrange(desc(Residual)) |>
+                head(10)
+
+
+# Check negative AGI among extreme residuals
+Negative_AGI_Low_Residual <- Low_Residual |> filter(ZipCode %in% Negative_AGI$ZipCode)
+Negative_AGI_High_Residual  <- High_Residual |> filter(ZipCode %in% Negative_AGI$ZipCode)
+
+
+# Check high AGI among extreme residuals
+High_AGI_Low_Residual <- Low_Residual |> filter(ZipCode %in% High_AGI$ZipCode)
+High_AGI_High_Residual  <- High_Residual |> filter(ZipCode %in% High_AGI$ZipCode)
+
+
+
+
+```
+```{r}
+#| warning: false
+#| echo: false
+#| message: false
+#| label: tbl-high-residual
+
+
+# Display tables
+High_Residual |>
+                mutate(
+                  Average_AGI = format(round(Average_AGI), big.mark = ","),
+                  EV_Percentage = round(EV_Percentage, 2),
+                  Fitted = round(Fitted, 2),
+                  Residual = round(Residual, 2)) |>
+                knitr::kable(
+                  col.names = c("Zip Code", "Average AGI ($)", "EV (%)", "Fitted EV (%)", "Residual"),
+                caption = "Zip codes with the 10 Largest Positive Residuals")
+
+
+```
+
+
+```{r}
+#| warning: false
+#| echo: false
+#| message: false
+#| label: tbl-low-residual
+
+
+# Display tables
+
+Low_Residual |>
+                mutate(
+                  Average_AGI = format(round(Average_AGI), big.mark = ","),
+                  EV_Percentage = round(EV_Percentage, 2),
+                  Fitted = round(Fitted, 2),
+                  Residual = round(Residual, 2)) |>
+                knitr::kable(
+                  col.names = c("Zip Code", "Average AGI ($)", "EV (%)", "Fitted EV (%)", "Residual"),
+                caption = "Zip codes with the 10 Largest Negative Residuals")
+
+
+```
+
+
+
+# Discussion {#sec-discussion}
+
+The residual plot and the normal Q-Q plot suggest some concerns regarding the assumptions of the simple linear regression model. In the residual plot, since the spread of residuals increases as the fitted values increase, it indicates that the variability of EV registration percentages may change with the fitted values. On the other hand, in the normal Q-Q plot, the residuals do not closely follow the reference line and display a curved pattern, with the deviations tend to much larger in the tails. This suggests that the residual distributions differs from a normal distributions, particularly at its extremes. Regarding linearity, the residual plot exhibits systematic patterns rather than a random scatter. However, the plot highlights the changing spread of the residuals more apparently than a clear nonlinear pattern. Therefore, the normality assumption is not well satisfied. 
+
+Some of these patterns may be related to Zip codes with extreme average AGI values. For the ten Zip codes with the highest average AGI, most are PO Box or are located in the financial hubs such as San Francisco and Los Angleles. The average AGI values in these ares range approximately from $500,000 to $1.5 million per tax return. These extreme AGI values can produce unusual fitted values and large residuals as observed in the residual analysis. At the other extreme, Zip code 95246, is in Clearlake Oaks, Lake County, in which the lowest average AGI (approximately -$1.5 million per tax return) and the largest positive residual of 18.42. Thus, the simple linear relationship does not adequately fit these observations. 
+
+However, I do not consider these observations to be simply data errors. Because most the Zip codes with the extreme AGI values are located in the Bay Area and Los Angles, where very high incomes, capital gains, business income, and business losses can produces unusual AGI values. Therefore, I retain these observations in the analysis rather than classifying them as outliers. 
+
+One limitation of this analysis is the use of average AGI as a proxy for income. This is because AGI includes income sources other than W-2 wages, such as capital gains and business profits or losses. As a result, average AGI may not accurately reflect the income of a typical person or household within a Zip code. Just a few instances of extremly high or substantial capital losses can cause the average AGI value of an entire Zip code to fluctuate abnormally. 
+
+Consequently, although it is a strong evidence of a positive association, average AGI alone explain only 32.68% of variations due to the violation of model assumptions, indicating that a large portion of the variation remains unexplained. Beyond income, other factors may also be associated with EV registrations, such as house typing, availability of charging stations, gasoline and electricity cost, or population density. Thus, collecting additional data on these factors and using median income instead of AGI would allow for more robust investigation into the relationship. Furthermore, a multiple linear regression model should be considered to examine these combined associations. 
+
+
+
+# References
+
+Brown, D. P. (2022). Socioeconomic and demographic disparities in residential battery storage adoption: Evidence from California. *Energy Policy, 164*, 112877. https://doi.org/10.1016/j.enpol.2022.112877
+
+Muehlegger, E., & Rapson, D. S. (2022). Subsidizing low- and middle-income adoption of electric vehicles: Quasi-experimental evidence from California. *Journal of Public Economics, 216*, 104752. https://doi.org/10.1016/j.jpubeco.2022.104752
+
+
+
+
