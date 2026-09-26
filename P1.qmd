@@ -1,11 +1,11 @@
 ---
-title: "Is Average Adjusted Income per Tax Return Associated with EV Ownership Across California ZIP codes in 2023?"
+title: "Is Average Adjusted Gross Income per Tax Return Associated with the Percentage EV Registration Across California Zip codes in 2023?"
 # subtitle: "Subtitle"
 author: "Hien Vo"
-# thanks: "Project repository available at: [https://github.com......................"
+thanks: "Project repository available at: https://github.com/HVoH/Math261A-Project1"
 date: today
 date-format: long
-abstract: "California is one of the largest markets for electric vehicles (EVs) in the US. However, EV adoption varies across different areas of the state. Because EVs are generally more expensive to purchase than many other types of vehicles, income may be associated with EV adoption. This study uses linear regression to investigate whether EV regristration is associated with average AGI. Using 2023 income data and individual EV registration data aggregated by ZIP code, the analysis examine whether the areas with higher average AGI tend to have a higher percentage of EV regristrations." 
+abstract: "California is one of the largest markets for electric vehicles (EVs) in the US. However, EV adoption varies across different areas of the state. Because EVs are generally more expensive to purchase than many other types of vehicles, income may be associated with EV adoption. This study uses linear regression to investigate whether EV regristration is associated with average adjusted gross income (AGI). Using 2023 income data and individual EV registration data aggregated by Zip code, the analysis examine whether the areas with higher average AGI tend to have a higher percentage of EV regristrations." 
 
 format: pdf
 # bibliography: references.bib
@@ -30,9 +30,9 @@ library(readr)
 
 Following the adoption of California's zero-emission vehicles policies, the required percentage of new zero-emission vehicle sales is scheduled to increase gradually, reaching 100% by 2035. Although the government has programs such that the Enhanced Fleet Modernization Program ("EFMP") that provides subsidies to EV buyers, the price of EVs may still be an important factors in purchasing decisions. Muehlegger and Rapson (2022) finds that EV demand from low- and middle-income buyers is price-elastic. Their research shows that if subsidies resulted in a reductions of 10% in EV prices, sales to to low- and middle income buyers would increase by approximately 21%. They also emphasize EVs price impacts this customer segments more than higher-income buyers. 
 
-Additional, according to Brown (2021), there is a strong relationship between median household income and residential battery storage adoption rates in California. The study also finds negative disparities in battery adoption rates in ZIP codes with larger percentages of Black, Asian, and Hispanic residents. Defining EVs as battery electric vehicles only, the question is whether the percentage of EV registration is higher in ZIP codes with higher average income. 
+Additional, according to Brown (2021), there is a strong relationship between median household income and residential battery storage adoption rates in California. The study also finds negative disparities in battery adoption rates in Zip codes with larger percentages of Black, Asian, and Hispanic residents. Defining EVs as battery electric vehicles only, the question is whether the percentage of EV registration is higher in Zip codes with higher average income. 
 
-In this paper, I study the associate between the average adjusted gross income (AGI) per tax return and the percentage of EV registration across California ZIP codes in 2023. We expect there is a strong positive relationship between these variables. The results may provide some information for EV sellers when considering different sales strategies across ZIP codes.
+In this paper, I study the associate between the average adjusted gross income (AGI) per tax return and the percentage of EV registration across California Zip codes in 2023. We expect there is a strong positive relationship between these variables. The results may provide some information for EV sellers when considering different sales strategies across Zip codes.
 
 
 # Data {#sec-data}
@@ -125,12 +125,12 @@ Per_EV_of_Vehicle_Not_Matched <- round(sum(Vehicle_Not_Matched$EV) / sum(Vehicle
 
 ```
 
-The data used for this research come from two data sets are extracted from the California Open Data sources. The first data set is "Personal Income Tax Statistics by Zip Code, City, and County" which contains the number of tax returns, California AGI, and total tax liability for each ZIP code, county, and city from tax year 1992 to 2023. The data set is published by California Franchise Tax Board. Since I only need the average AGI per tax return for each ZIP code in 2023, the average is calculated by dividing California AGI by the number of tax returns for the tax year 2023. 
+The data used for this research come from two data sets are extracted from the California Open Data sources. The first data set is "Personal Income Tax Statistics by Zip Code, City, and County" which contains the number of tax returns, California AGI, and total tax liability for each Zip code, county, and city from tax year 1992 to 2023. The data set is published by California Franchise Tax Board. Since I only need the average AGI per tax return for each Zip code in 2023, the average is calculated by dividing California AGI by the number of tax returns for the tax year 2023. 
 
-The second data set is "Vehicle Fuel Type Count by Zip Code in 2023" which contains model year, fuel type, make and duty of registered vehicles by ZIP code in California. The data set is provided by DMV Information Policy and Liaison Branch. Because EVs in the research are defined as battery electric vehicles registered as light-duty vehicles for non-commercial purposes, the data are cleaned and grouped by ZIP code to obtained `r format(Total_Light_Vehicles, big.mark = ",")` light-duty registered vehicles. The percentage of EV registrations is then calculated by dividing the number of light-duty EVs by the total number of light-duty registered vehicles. However, DMV counts ZIP codes base on the mailing addresses that vehicles owners use to receive mail. Thus, there is about `r format(EV_of_Vehicle_Not_Matched, big.mark = ",")` EVs associated with mailing addresses in Zip codes outsite California, representing approximately `r Per_EV_of_Vehicle_Not_Matched`% of EV in the vehicle data set. 
+The second data set is "Vehicle Fuel Type Count by Zip Code in 2023" which contains model year, fuel type, make and duty of registered vehicles by Zip code in California. The data set is provided by DMV Information Policy and Liaison Branch. Because EVs in the research are defined as battery electric vehicles registered as light-duty vehicles for non-commercial purposes, the data are cleaned and grouped by Zip code to obtained `r format(Total_Light_Vehicles, big.mark = ",")` light-duty registered vehicles. The percentage of EV registrations is then calculated by dividing the number of light-duty EVs by the total number of light-duty registered vehicles. However, DMV counts Zip codes base on the mailing addresses that vehicles owners use to receive mail. Thus, there is about `r format(EV_of_Vehicle_Not_Matched, big.mark = ",")` EVs associated with mailing addresses in Zip codes outsite California, representing approximately `r Per_EV_of_Vehicle_Not_Matched`% of EV in the vehicle data set. 
 
 
-I create a new data set for this research by joining the income and vehicle data sets by ZIP code in which total `r Observations` observations. ZIP codes that cannot be matched between the two data sets are excluded from the new data set because the research focuses areas with both California tax return information and vehicle registration data, rather than areas with vehicle registrations only. The final joined data set contains one observation for each matched California ZIP code with variables including average AGI per tax return and the percentage of EV registrations in 2023. 
+I create a new data set for this research by joining the income and vehicle data sets by ZIP code in which total `r Observations` observations. Zip codes that cannot be matched between the two data sets are excluded from the new data set because the research focuses areas with both California tax return information and vehicle registration data, rather than areas with vehicle registrations only. The final joined data set contains one observation for each matched California Zip code with variables including average AGI per tax return and the percentage of EV registrations in 2023. 
 
 The association between average AGI per tax return and the percentage of EV registrations in 2023 is shown in @fig-ev-scatter. 
 
@@ -176,7 +176,7 @@ I fit the simple linear regression model of the percentage of EV registrations o
 $$Y_i = \beta_0 +\beta_1 X_i + \varepsilon_i$$
 
 
-In this model, $Y_i$ represents the percentage of EV registrations in ZIP code $i$, and $X_i$ represents the average AGI per tax return in units of $10,000. The slop $\beta_1$ represents the estimated change in the percentage of EV registrations, in percentage points, for each dolla increase in average AGI per tax return. The intercept $\beta_0$ represents the estimated percentage of EV registrations when the average AGI per tax return is zero. The error term $\varepsilon_i$ represents the random variation in the percentage of EV registrations that is not explained by average AGI.
+In this model, $Y_i$ represents the percentage of EV registrations in Zip code $i$, and $X_i$ represents the average AGI per tax return in dollars. The slop $\beta_1$ represents the estimated change in the percentage of EV registrations, in percentage points, for each dolla increase in average AGI per tax return. The intercept $\beta_0$ represents the estimated percentage of EV registrations when the average AGI per tax return is zero. The error term $\varepsilon_i$ represents the random variation in the percentage of EV registrations that is not explained by average AGI.
 
 I implemented this analysis using the R programming language version 4.4.2 to fit the linear regression model.
 
@@ -398,7 +398,7 @@ Consequently, although it is a strong evidence of a positive association, averag
 
 # References
 
-Brown, D. P. (2022). Socioeconomic and demographic disparities in residential battery storage adoption: Evidence from California. *Energy Policy, 164*, 112877. https://doi.org/10.1016/j.enpol.2022.112877
+Brown, D. P. (2021). Socioeconomic and demographic disparities in residential battery storage adoption: Evidence from California. *Energy Policy, 164*, 112877. https://doi.org/10.1016/j.enpol.2022.112877
 
 Muehlegger, E., & Rapson, D. S. (2022). Subsidizing low- and middle-income adoption of electric vehicles: Quasi-experimental evidence from California. *Journal of Public Economics, 216*, 104752. https://doi.org/10.1016/j.jpubeco.2022.104752
 
