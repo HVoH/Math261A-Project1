@@ -3,11 +3,11 @@ Is Average Adjusted Gross Income per Tax Return Associated with the Percentage o
 
 Author:             HIEN VO  
 
-Submission Date:    Sep 25, 2026
+Submission Date:    Oct 12, 2026
 
 Project Description:   
-This project uses linear regression to investigate whether EV regristration is associated with average AGI. 
-Using 2023 income data and individual EV registration data aggregated by ZIP code, the analysis examines whether the areas with higher average AGI tend to have a higher percentage of EV regristrations.
+This project uses linear regression to investigate whether EV registration is associated with average AGI. 
+Using 2023 income data and individual EV registration data aggregated by ZIP code, the analysis examines whether the areas with higher average AGI tend to have a higher percentage of EV registrations.
 
 
 Project structure:  
@@ -32,6 +32,8 @@ https://data.ca.gov/dataset/personal-income-tax-statistics-by-zip-code
 
 The data set "Vehicle registration data by Zip code" is provided by DMV Information Policy and Liaison Branch.  
 https://data.ca.gov/dataset/vehicle-fuel-type-count-by-zip-code  
+
+R Core Team (2026). R: A Language and Environment for Statistical Computing. R Foundation for Statistical Computing, Vienna, Austria.
     
 
 External Resources and LLM Use:  
