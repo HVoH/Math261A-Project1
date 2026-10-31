@@ -246,7 +246,7 @@ Percent_Number_Zero_EV <- round(Number_Zero_EV / nrow(Join_Data_without95246) * 
 #| echo: false
 #| message: false
 #| label: fig-ev-scatter
-#| fig-cap: "Scatter plot of average AGI per tax return (x-axis) and percentage of EV registrations (y-axis) across California ZIP codes in 2023."
+#| fig-cap: "Scatter plot of average AGI per tax return (x-axis) and percentage of EV registrations (y-axis) across California Zip codes in 2023."
 #| fig-pos: "H"
 #| fig-width: 7
 #| fig-height: 5
@@ -274,7 +274,7 @@ R_squared <- summary(EV_Model)$r.squared
 
 ```
 
-As shown in @fig-ev-scatter and @tbl-descriptive, the distribution of average AGI contains several extreme positive and negative values. AGI can be negative when deductible losses from business activities, self-employment, or certain investment exceed incomes from salaries and other sources. However, the data set shows negative average AGI in a Zip code that occur when substantial losses reported on some tax returns outweigh the positive income reported on other returns. Among the `r Observations` ZIP codes, `r Number_Negative_AGI` ZIP codes `r sprintf("%.2f", Percent_Number_Zero_EV)`% have negative average AGI, with the lowest value of `r paste0("-$", format(round(abs(Min_Negative_AGI)), big.mark = ","))` (@tbl-negative-agi). The extreme negative average AGI with `r paste0("-$", format(round(abs(Min_Negative_AGI)), big.mark = ","))` and an EV registration percentage of 0.36% is in Zip code 95246 located in Mountain Ranch City, Calaveras County. 
+As shown in @fig-ev-scatter and @tbl-descriptive, the distribution of average AGI contains several extreme positive and negative values. AGI can be negative when deductible losses from business activities, self-employment, or certain investment exceed incomes from salaries and other sources. However, the data set shows negative average AGI in a Zip code that occur when substantial losses reported on some tax returns outweigh the positive income reported on other returns. Among the `r Observations` Zip codes, `r Number_Negative_AGI` Zip codes `r sprintf("%.2f", Percent_Number_Zero_EV)`% have negative average AGI, with the lowest value of `r paste0("-$", format(round(abs(Min_Negative_AGI)), big.mark = ","))` (@tbl-negative-agi). The extreme negative average AGI with `r paste0("-$", format(round(abs(Min_Negative_AGI)), big.mark = ","))` and an EV registration percentage of 0.36% is in Zip code 95246 located in Mountain Ranch City, Calaveras County. 
 
 Zip code 95246 has the lowest average AGI at approximately -$\$1.5$ million, more than five times the second-lowest value (-$286,501). Since average AGI is used as a measure of income in this research, this extreme negative value does not represent the typical income level of the area. Therefore, Zip code 95246 was excluded from the main analysis.
 
@@ -284,12 +284,12 @@ Zip code 95246 has the lowest average AGI at approximately -$\$1.5$ million, mor
 #| echo: false
 #| warning: false
 #| message: false
-#| tbl-cap: "ZIP Codes with Negative Average AGI"
+#| tbl-cap: "Zip Codes with Negative Average AGI"
 
 Negative_AGI |> mutate(Average_AGI = round(Average_AGI, 0), 
                        EV_Percentage = round(EV_Percentage, 2)) |>
   knitr::kable(
-    col.names = c("ZIP Code", "City", "County", "Average AGI ($)", "EV Registration (%)"),
+    col.names = c("Zip Code", "City", "County", "Average AGI ($)", "EV Registration (%)"),
     format.args = list(big.mark = ","))
 ```
 
@@ -299,16 +299,16 @@ Negative_AGI |> mutate(Average_AGI = round(Average_AGI, 0),
 #| echo: false
 #| warning: false
 #| message: false
-#| tbl-cap: "ZIP Codes with the top 1% of the Average AGI"
+#| tbl-cap: "Zip Codes with the top 1% of the Average AGI"
 
 High_AGI |> mutate(Average_AGI = round(Average_AGI, 0), 
                        EV_Percentage = round(EV_Percentage, 2)) |>
   knitr::kable(
-    col.names = c("ZIP Code", "City", "County", "Average AGI ($)", "EV Registration (%)"),
+    col.names = c("Zip Code", "City", "County", "Average AGI ($)", "EV Registration (%)"),
     format.args = list(big.mark = ","))
 ```
 
-At the upper end of the distribution, `r nrow(High_AGI)` ZIP codes fall within the top 1% of the average AGI values. The highest average AGI is approximately `r paste0("$", format(round(max(High_AGI$Average_AGI)), big.mark = ","))`, observed in ZIP code `r High_AGI$ZipCode[which.max(High_AGI$Average_AGI)]`. Nevertheless, a high average AGI does not always correspond to a high percentage of EV registrations (@tbl-top-agi).
+At the upper end of the distribution, `r nrow(High_AGI)` Zip codes fall within the top 1% of the average AGI values. The highest average AGI is approximately `r paste0("$", format(round(max(High_AGI$Average_AGI)), big.mark = ","))`, observed in Zip code `r High_AGI$ZipCode[which.max(High_AGI$Average_AGI)]`. Nevertheless, a high average AGI does not always correspond to a high percentage of EV registrations (@tbl-top-agi).
 
 After excluding Zip code 95246, the final merged data set contains 2,074 observations, as summarized in @tbl-descriptive-2074 and illustrated in the scatter plot in @fig-ev-scatter-without95246.
 
